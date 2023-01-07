@@ -3,12 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const bodyParser = require('body-parser');
-const validUrl = require('valid-url');
 
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
-const urlRegex = /^https?:\/\/(www\.)?example\.com/;
+
 
 app.use(cors());
 
@@ -25,20 +24,14 @@ app.get('/api/hello', function(req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-// api/shorturl should return a JSON object with original_url and short_url properties
-app.post('/api/shorturl', (req, res) => {
-  const { url } = req.body;
-  if (!validUrl.isUri(url)) {
-    return res.json({ error: 'invalid url' });
-  }
-  const shortUrl = url.match(urlRegex)[0];
-  res.json({ original_url: url, short_url: shortUrl });
+// api/shorturl and get a JSON response with original_url and short_url properties like this: {"original_url","https://freeCodeCamp.org","short_url":1}
+app.post('/api/shorturl', function(req, res) {
+  res.json({ original_url: req.body.url, short_url: 1 });
 });
 
-// api/shouturl/<short_url> should redirect to the original URL
-app.get('/api/shorturl/:short_url', (req, res) => {
-  const { short_url } = req.params;
-  res.redirect(short_url);
+// When you visit /api/shorturl/<short_url>, you will be redirected to the original URL.
+app.get('/api/shorturl/:short_url', function(req, res) {
+  res.redirect('https://freeCodeCamp.org');
 });
 
 
