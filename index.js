@@ -17,41 +17,45 @@ app.get('/', function(req, res) {
 });
 
 // Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
-});
+const urlMapping = {};
 
-// api/shorturl should get a JSON respond with original_url and short_url properties. When you visit api/shorturl/<short_url>, you will be redirected to the original URL and if the original URL doesn't exist, you will get a JSON response with error: 'invalid URL'
 app.post('/api/shorturl', (req, res) => {
-  const longUrl = req.body.longUrl;
-  if (validUrl.isUri(longUrl)) {
-    const shortUrl = shortid.generate();
-    // Save the URL mapping in a database
-    saveMapping(shortUrl, longUrl);
-    res.json({ original_url: longUrl, short_url: shortUrl });
-  } else {
-    res.json({ error: 'invalid url' });
+  // Get the original URL from the request
+  const originalUrl = req.body.url;
+
+  // Check if the URL is valid
+  if (!validUrl.isUri(originalUrl)) {
+    return res.json({ error: 'invalid url' });
   }
+
+  // Generate a short URL
+  const shortUrl = generateShortUrl();
+
+  // Save the URL mapping
+  urlMapping[shortUrl] = originalUrl;
+
+  // Return the short URL in the response
+  res.json({ originalUrl: originalUrl, shortUrl: shortUrl });
 });
 
 app.get('/api/shorturl/:shortUrl', (req, res) => {
-  const shortUrl = req.params.shortUrl;
   // Look up the original URL for the short URL
-  const longUrl = getLongUrl(shortUrl);
-  if (longUrl) {
-    res.redirect(longUrl);
-  } else {
-    res.send('URL not found');
+  const originalUrl = urlMapping[req.params.shortUrl];
+
+  // If the short URL is not in the mapping, return a 404 error
+  if (!originalUrl) {
+    return res.sendStatus(404);
   }
+
+  // Redirect to the original URL
+  res.redirect(originalUrl);
 });
 
-const saveMapping = (shortUrl, longUrl) => {
-  // Save the URL mapping in a database
-};
-
-const getLongUrl = (shortUrl) => {
-  // Look up the original URL for the short URL in the database
-};
+function generateShortUrl() {
+  // Generate a short URL here. This could be a random string or an integer
+  // that is incremented each time a new short URL is created.
+  return 'abc123';
+}
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
